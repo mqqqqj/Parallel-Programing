@@ -210,12 +210,9 @@ int* ACSAnt::Search(){//开始搜索
     int toCity;
     currentTourIndex = 0;
     int i = 0;
-    //__m256 vt = _mm256_set1_ps(1);
     __m256i vt = _mm256_set1_epi32 (1);
     for (; i +8<= N; i+=8){     //初始化禁忌表，可用simd并行
-        //_mm256_storeu_ps(&allowed[i], vt);
         _mm256_storeu_si256((__m256i*)&allowed[i], vt);
-        //allowed[i] = 1;
     }
     for(;i<N;i++){
         allowed[i] = 1;
@@ -232,12 +229,12 @@ int* ACSAnt::Search(){//开始搜索
         {
             MoveToNextCity(toCity);
             cururentCity = toCity;
-//#pragma omp critical
+#pragma omp critical
             antColony->UpdateLocalPathRule(endCity, toCity);//这里是临界
         }
     } while (toCity >= 0);
     MoveToNextCity(startCity);
-//#pragma omp critical
+#pragma omp critical
     antColony->UpdateLocalPathRule(endCity, startCity);//这里是临界
     return *Tour;
 }
@@ -366,7 +363,7 @@ int main(){
             int* tourPath = ants[j]->Search();//蚂蚁进行一次行动
             tourLength = calculateSumOfDistance(tourPath);//当前行动得出的距离
             //局部比较，并记录路径和长度
-//#pragma omp critical
+#pragma omp critical
             if (tourLength < localBestLength || fabs(localBestLength - 0.0) < 0.000001){
                 for (int m = 0; m< N; m++)
                 {

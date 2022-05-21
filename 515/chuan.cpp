@@ -1,9 +1,6 @@
 #include<iostream>
 #include <cmath>
 #include<time.h>
-#ifdef _OPENMP
-#include <omp.h>
-#endif
 using namespace std;
 
 //该程序是以蚁群系统为模型写的蚁群算法程序(强调：非蚂蚁周模型)，以三个著名的TSP问题为测试对象
@@ -194,7 +191,6 @@ void AntColonySystem::UpdateGlobalPathRule(int* bestTour, int globalBestLength)/
 {
     for (int i = 0; i < N; i++)
     {
-        //__m256 va = _mm256_loadu_ps(&A[k][j]);
         int row = *(bestTour + 2 * i);
         int col = *(bestTour + 2 * i + 1);
         info[row][col] = (1.0 - rou) * info[row][col] + rou * (1.0 / globalBestLength);
@@ -369,12 +365,9 @@ int main()
     AntColonySystem* acs = new AntColonySystem();//蚁群系统对象
     ACSAnt* ants[M];//蚁群对象指针数组
     //蚂蚁均匀分布在城市上
-    
-#pragma omp parallel for num_threads(6)
     for (int k = 0; k < M; k++)
     {
         ants[k] = new ACSAnt(acs, (int)(k%N));
-        //printf("%d",omp_get_thread_num());
     }
     calculateAllDistance();
     int node = rand() % N;//随机选择一个节点计算由最近邻方法得到的一个长度
@@ -394,7 +387,6 @@ int main()
         double localBestLength = 0.0;
         //当前路径长度
         double tourLength;
-#pragma omp parallel for num_threads(6)
         for (int j = 0; j < M; j++)//每个蚂蚁开始行动
         {
             int* tourPath = ants[j]->Search();
@@ -406,12 +398,9 @@ int main()
                 {
                     int row = *(tourPath + 2 * m);
                     int col = *(tourPath + 2 * m + 1);
-#pragma omp critical
                     localTour[m][0] = row;//临界
-#pragma omp critical
                     localTour[m][1] = col;//临界
                 }
-#pragma omp critical
                 localBestLength = tourLength;//临界
             }
         }
